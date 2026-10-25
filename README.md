@@ -249,6 +249,37 @@ With `aif-operator`, set all of them so AI Factory can pull its workloads right
 after the deployment. Plan prints a warning that names any missing ones; the
 deployment itself does not need them. Each pair is set together or not at all.
 
+### Registry mirrors
+
+`registry_mirrors` and `registry_configs` write RKE2's
+`/etc/rancher/rke2/registries.yaml` into the image, so every node pulls
+container images through a private registry:
+
+```hcl
+registry_mirrors = {
+  "*" = { endpoints = ["https://mirror.example.internal"] }  # every upstream host
+}
+registry_configs = {
+  "mirror.example.internal" = {
+    username = "puller"
+    password = "REPLACE"
+    ca_pem   = "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----\n"
+  }
+}
+```
+
+- Changing either variable rebuilds the image and replaces every node.
+- They cover containerd image pulls only. Helm charts (the release manifest's
+  `repositories`) and the image build on the build host still use their
+  upstream sources.
+- The file and any credentials in it are baked into the image and kept in
+  state, like the other registry credentials. On the node the file is mode
+  0644 (Elemental installs it), so prefer a mirror without pull auth. On aws they count against the
+  16 KiB build host `user_data` limit: a mirror with auth and a CA adds about
+  1.2 KiB, which fits the default components but not a management cluster
+  with every add-on component (plan fails on the size precondition).
+  Rationale: [ADR 011](docs/decisions/011-registry-mirrors.md).
+
 ## Web UI
 
 **Alpha** (`alpha-0.0.2`). A local web interface creates, deploys and destroys clusters from forms, with

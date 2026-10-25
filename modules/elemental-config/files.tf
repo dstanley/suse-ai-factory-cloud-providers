@@ -44,7 +44,7 @@ locals {
         enable_local_path_prep  = local.enabled_local_path_prep
         enable_debugfs          = contains(local.enabled_components, "observability-agent")
         extra_units_yaml        = local.extra_units_yaml
-        extra_files             = var.extra_butane_files
+        extra_files             = concat(local.registry_butane_files, var.extra_butane_files)
       })
 
       "kubernetes/cluster.yaml" = templatefile("${path.module}/templates/elemental/kubernetes/cluster.yaml.tftpl", {
@@ -65,6 +65,7 @@ locals {
       })
     },
     local.component_values_files,
+    local.registry_config_files,
     # -priority: elemental applies these before its HelmCharts; other manifests
     # wait for every chart job (docs/decisions/001-elemental-config-rationale.md).
     local.component_pull_secret_manifests,

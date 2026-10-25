@@ -265,3 +265,26 @@ run "jumphost_user_data_size" {
     error_message = "Jumphost user_data is ${nonsensitive(local.jumphost_user_data_bytes)} bytes with every management component, over EC2's 16384."
   }
 }
+
+# An air-gapped cluster: default components plus a mirror with auth and a
+# PEM-sized CA. The worst-case component set above has no room for this.
+run "jumphost_user_data_size_registry_mirror" {
+  command = plan
+
+  variables {
+    components       = ["rancher", "gpu-operator", "local-path-provisioner", "aif-operator"]
+    registry_mirrors = { "*" = { endpoints = ["https://mirror.example.internal:5000"] } }
+    registry_configs = {
+      "mirror.example.internal:5000" = {
+        username = "DUMMY-PULLER"
+        password = "DUMMY-REGISTRY-TOKEN-DUMMY-REGISTRY-TOKEN"
+        ca_pem   = file("tests/fixtures/tls-backend-cert.txt")
+      }
+    }
+  }
+
+  assert {
+    condition     = nonsensitive(local.jumphost_user_data_bytes) <= 12288
+    error_message = "Jumphost user_data is ${nonsensitive(local.jumphost_user_data_bytes)} bytes with a registry mirror and the default components; keep 4 KiB of headroom under EC2's 16384."
+  }
+}

@@ -74,6 +74,8 @@ module "ai_factory" {
   appco_username         = var.appco_username
   appco_password         = var.appco_password
   appco_registry         = var.appco_registry
+  registry_mirrors       = var.registry_mirrors
+  registry_configs       = var.registry_configs
   suse_registry_username = var.suse_registry_username
   suse_registry_password = var.suse_registry_password
   nvidia_api_key         = var.nvidia_api_key

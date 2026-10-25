@@ -38,6 +38,12 @@ suse_registry_username = "REPLACE_WITH_YOUR_SUSE_REGISTRY_USERNAME"
 suse_registry_password = "REPLACE_WITH_YOUR_SUSE_REGISTRY_PASSWORD"
 nvidia_api_key         = "REPLACE_WITH_YOUR_NVIDIA_NGC_API_KEY"
 
+# Private registry mirror for container images (air-gapped clusters). Writes
+# /etc/rancher/rke2/registries.yaml into the image; Helm charts are not
+# redirected. See README.md#registry-mirrors.
+# registry_mirrors = { "*" = { endpoints = ["https://mirror.example.internal"] } }
+# registry_configs = { "mirror.example.internal" = { username = "puller", password = "REPLACE" } }
+
 # --- GPU workers ----------------------------------------------------------
 # gpu_pools defaults to {}: a control-plane-only cluster. Types are
 # "family.size"; request GPU access from Exoscale with a

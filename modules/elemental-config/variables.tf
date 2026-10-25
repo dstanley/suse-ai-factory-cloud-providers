@@ -391,6 +391,54 @@ variable "nvidia_username" {
   }
 }
 
+variable "registry_mirrors" {
+  type = map(object({
+    endpoints = list(string)
+    rewrite   = optional(map(string), {})
+  }))
+  default     = {}
+  nullable    = false
+  description = "Containerd mirrors written to /etc/rancher/rke2/registries.yaml, keyed by upstream registry host (\"*\" matches every host). For private or air-gapped registries; Helm chart repositories are not redirected."
+
+  validation {
+    condition     = alltrue([for host, m in var.registry_mirrors : length(m.endpoints) > 0 && alltrue([for e in m.endpoints : can(regex("^https?://[^[:space:]/]+", e))])])
+    error_message = "Every registry_mirrors entry needs at least one endpoint, each an http:// or https:// URL."
+  }
+
+  validation {
+    condition     = alltrue([for host in keys(var.registry_mirrors) : host == "*" || can(regex("^[a-z0-9.-]+(:[0-9]+)?$", host))])
+    error_message = "registry_mirrors keys must be registry hosts (optionally host:port) without scheme or path, or \"*\"."
+  }
+}
+
+variable "registry_configs" {
+  type = map(object({
+    username             = optional(string)
+    password             = optional(string)
+    ca_pem               = optional(string)
+    insecure_skip_verify = optional(bool, false)
+  }))
+  default     = {}
+  nullable    = false
+  sensitive   = true
+  description = "Per-registry auth and TLS for registries.yaml, keyed by the mirror host (host or host:port). ca_pem is written next to the file and referenced as its ca_file."
+
+  validation {
+    condition     = alltrue([for host, c in var.registry_configs : (c.username == null) == (c.password == null)])
+    error_message = "registry_configs username and password must be set together."
+  }
+
+  validation {
+    condition     = alltrue([for host, c in var.registry_configs : !strcontains(c.username == null ? "" : c.username, "\n") && !strcontains(c.password == null ? "" : c.password, "\n")])
+    error_message = "registry_configs username and password must be single-line."
+  }
+
+  validation {
+    condition     = alltrue([for host in keys(var.registry_configs) : can(regex("^[a-z0-9.-]+(:[0-9]+)?$", host))])
+    error_message = "registry_configs keys must be registry hosts (optionally host:port) without scheme or path."
+  }
+}
+
 variable "gpu_driver_repository" {
   type        = string
   default     = "registry.opensuse.org/home/eminguez/branches/home/avicenzi/nvidia-for-bci-161/containerfile/third-party/nvidia"

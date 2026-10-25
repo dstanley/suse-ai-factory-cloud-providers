@@ -12,6 +12,10 @@ common:
       {"team": "ai", "cost-center": "1234"}
     observability_opensearch_credentials: |
       {"username": "admin", "password": "changeme"}
+    registry_mirrors: |
+      {"*": {"endpoints": ["https://mirror.example.internal"]}}
+    registry_configs: |
+      {"mirror.example.internal": {"username": "puller", "password": "changeme"}}
   basic:
     - {name: cluster_name, label: Cluster name}
     - {name: region, label: Region}
@@ -46,6 +50,8 @@ common:
       - components
       - suse_storage_nodes
       - appco_registry
+      - {name: registry_mirrors, widget: json}
+      - {name: registry_configs, widget: json}
       - nvidia_username
       - gpu_driver_repository
       - gpu_driver_version

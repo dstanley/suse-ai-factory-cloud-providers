@@ -256,6 +256,8 @@ cert-manager, suse-storage and two SSH keys measures 16147 bytes
 (`modules/aws/tests/user-data-size.tftest.hcl`). Long RSA SSH keys or extra
 components can exceed the limit; ed25519 keys are shortest. On a first apply
 the certificates are unknown at plan time, so an overflow fails at apply.
+A registry mirror with auth and a CA (`registry_mirrors`, `registry_configs`)
+adds about 1.2 KiB.
 
 ## Jumphost AMI: Marketplace listing
 

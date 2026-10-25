@@ -26,6 +26,10 @@ locals {
   api_nlb_ports = {
     for k, v in module.rke2_ports.lb_api : k => { protocol = v.protocol, from_port = v.from, to_port = v.to }
   }
+
+  # Nodes keep one open rule by default; without 0.0.0.0/0 they get the VPC plus each listed CIDR.
+  node_egress_open       = contains(var.node_egress_cidrs, "0.0.0.0/0")
+  node_egress_restricted = toset(concat([local.vpc_cidr], var.node_egress_cidrs))
 }
 
 # --- jumphost -----------------------------------------------------------
@@ -275,7 +279,10 @@ resource "aws_vpc_security_group_ingress_rule" "control_plane_ssh_from_jumphost"
   })
 }
 
+# Open egress unless node_egress_cidrs drops 0.0.0.0/0; then the VPC plus each listed CIDR.
 resource "aws_vpc_security_group_egress_rule" "control_plane_all" {
+  count = local.node_egress_open ? 1 : 0
+
   security_group_id = aws_security_group.control_plane.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
@@ -283,6 +290,25 @@ resource "aws_vpc_security_group_egress_rule" "control_plane_all" {
 
   tags = merge(local.common_tags, {
     Name             = "${var.cluster_name}-control-plane-egress-all"
+    "elemental-role" = "control_plane"
+  })
+}
+
+moved {
+  from = aws_vpc_security_group_egress_rule.control_plane_all
+  to   = aws_vpc_security_group_egress_rule.control_plane_all[0]
+}
+
+resource "aws_vpc_security_group_egress_rule" "control_plane_restricted" {
+  for_each = local.node_egress_open ? toset([]) : local.node_egress_restricted
+
+  security_group_id = aws_security_group.control_plane.id
+  cidr_ipv4         = each.value
+  ip_protocol       = "-1"
+  description       = each.value == local.vpc_cidr ? "egress inside the VPC" : "egress to ${each.value}"
+
+  tags = merge(local.common_tags, {
+    Name             = "${var.cluster_name}-control-plane-egress-${replace(each.value, "/", "-")}"
     "elemental-role" = "control_plane"
   })
 }
@@ -352,7 +378,7 @@ resource "aws_vpc_security_group_ingress_rule" "agent_ssh_from_jumphost" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "agent_all" {
-  count = local.has_agent_pools ? 1 : 0
+  count = local.has_agent_pools && local.node_egress_open ? 1 : 0
 
   security_group_id = aws_security_group.agent[0].id
   cidr_ipv4         = "0.0.0.0/0"
@@ -361,6 +387,20 @@ resource "aws_vpc_security_group_egress_rule" "agent_all" {
 
   tags = merge(local.common_tags, {
     Name             = "${var.cluster_name}-worker-egress-all"
+    "elemental-role" = "agent"
+  })
+}
+
+resource "aws_vpc_security_group_egress_rule" "agent_restricted" {
+  for_each = local.has_agent_pools && !local.node_egress_open ? local.node_egress_restricted : toset([])
+
+  security_group_id = aws_security_group.agent[0].id
+  cidr_ipv4         = each.value
+  ip_protocol       = "-1"
+  description       = each.value == local.vpc_cidr ? "egress inside the VPC" : "egress to ${each.value}"
+
+  tags = merge(local.common_tags, {
+    Name             = "${var.cluster_name}-worker-egress-${replace(each.value, "/", "-")}"
     "elemental-role" = "agent"
   })
 }

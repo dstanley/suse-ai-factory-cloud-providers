@@ -60,6 +60,8 @@ module "ai_factory" {
   vmimport_role_name             = var.vmimport_role_name
   jumphost_instance_profile_name = var.jumphost_instance_profile_name
 
+  node_egress_cidrs = var.node_egress_cidrs
+
   image_rebuild      = var.image_rebuild
   aif_release        = var.aif_release
   components         = var.components

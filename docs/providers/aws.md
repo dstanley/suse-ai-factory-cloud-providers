@@ -321,6 +321,26 @@ pool's `disk_size_gb` (default 200).
 - Nodes have private addresses only and reach the internet through one NAT
   gateway in the first public subnet. An S3 gateway endpoint carries S3
   traffic without the NAT gateway.
+- `node_egress_cidrs` (default `["0.0.0.0/0"]`) limits where control-plane,
+  worker and GPU nodes may connect outside the VPC; traffic inside the VPC is
+  always allowed. `[]` confines them to the VPC for an air-gapped cluster:
+  images then come from a registry inside the VPC (`registry_mirrors`). The
+  jumphost keeps unrestricted egress, since it builds the image.
+  - Security groups do not filter the VPC DNS resolver, the instance metadata
+    service or the Amazon Time Sync Service, so name resolution, IMDS and NTP
+    over `169.254.169.123` keep working. The resolver answers public names,
+    so DNS remains a path out; Route 53 Resolver DNS Firewall closes it.
+  - The rules are IPv4-only; the VPC has no IPv6 CIDR, so there is no IPv6
+    path. Pods share their node's network interface (Canal), so the rules
+    apply to pod traffic too.
+  - The S3 gateway endpoint's public prefix list is outside the VPC CIDR, so
+    locked nodes cannot reach S3 either.
+  - Names that resolve to the public NLB (the Rancher and `sslip.io`
+    hostnames) are public addresses, so in-cluster clients that call them are
+    blocked. Add the public NLB addresses to `node_egress_cidrs`, or use
+    `ingress_domain` with private DNS.
+  - Helm chart repositories are not redirected by the registry mirrors, so
+    chart installs still need their upstream hosts.
 - A node's IP is fixed at plan time (host 20 and up of its zone's private
   subnet). EC2 reserves the first four addresses and the last one of each
   subnet.

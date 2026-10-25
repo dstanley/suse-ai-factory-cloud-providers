@@ -97,6 +97,7 @@ aws:
     Provider:
       - vmimport_role_name
       - jumphost_instance_profile_name
+      - {name: node_egress_cidrs, widget: cidr_list}
 
 evroc:
   examples:

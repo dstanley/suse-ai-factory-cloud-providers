@@ -27,3 +27,15 @@ variable "jumphost_instance_profile_name" {
     error_message = "jumphost_instance_profile_name must not be empty; use null to let the module create the IAM roles."
   }
 }
+
+variable "node_egress_cidrs" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  nullable    = false
+  description = "CIDRs outside the VPC that control-plane, worker and GPU nodes may reach (the VPC is always allowed; the jumphost stays open). [] confines nodes to the VPC, for an air-gapped cluster with an in-VPC registry mirror."
+
+  validation {
+    condition     = alltrue([for c in var.node_egress_cidrs : can(cidrnetmask(c)) && try(cidrhost(c, 0) == split("/", c)[0], false)])
+    error_message = "node_egress_cidrs entries must be canonical IPv4 CIDRs (no host bits set), for example 203.0.113.0/24."
+  }
+}

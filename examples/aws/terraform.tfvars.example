@@ -123,6 +123,11 @@ nvidia_api_key         = "REPLACE_WITH_YOUR_NVIDIA_NGC_API_KEY"
 # Ingress CIDRs for 80/443 (default open).
 # ingress_cidrs = ["0.0.0.0/0"]
 
+# Node egress beyond the VPC (default open). [] confines control-plane,
+# worker and GPU nodes to the VPC: air-gapped, pulling through an in-VPC
+# registry mirror. The jumphost stays open to build the image.
+# node_egress_cidrs = []
+
 # Non-GPU workers. Same fields and hostname scheme as gpu_pools; keys must
 # differ from gpu_pools keys.
 # worker_pools = {

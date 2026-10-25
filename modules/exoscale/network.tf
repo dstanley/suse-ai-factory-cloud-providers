@@ -49,7 +49,7 @@ resource "exoscale_private_network" "this" {
 
     precondition {
       condition     = length(local.agent_pool_unsupported) == 0
-      error_message = "gpu_pools or worker_pools entries ${join(", ", local.agent_pool_unsupported)} set a field this provider does not support: zone and placement must be null and kind must be \"vm\"."
+      error_message = "gpu_pools or worker_pools entries ${join(", ", local.agent_pool_unsupported)} set a field this provider does not support: zone, placement, market and capacity_reservation_id must be null and kind must be \"vm\"."
     }
   }
 }

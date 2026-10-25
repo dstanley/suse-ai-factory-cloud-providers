@@ -140,13 +140,15 @@ variable "image_target_disk_gb" {
 
 variable "gpu_pools" {
   type = map(object({
-    instance_type = string
-    count         = optional(number, 1)
-    disk_size_gb  = optional(number)
-    zone          = optional(string)
-    public_ip     = optional(bool, false)
-    kind          = optional(string, "vm")
-    placement     = optional(string)
+    instance_type           = string
+    count                   = optional(number, 1)
+    disk_size_gb            = optional(number)
+    zone                    = optional(string)
+    public_ip               = optional(bool, false)
+    kind                    = optional(string, "vm")
+    placement               = optional(string)
+    market                  = optional(string)
+    capacity_reservation_id = optional(string)
   }))
   default     = {}
   description = "GPU worker pools by name. evroc accepts kind vm, and placement spread or cluster; the zone must be a GPU zone (a)."
@@ -154,13 +156,15 @@ variable "gpu_pools" {
 
 variable "worker_pools" {
   type = map(object({
-    instance_type = string
-    count         = optional(number, 1)
-    disk_size_gb  = optional(number)
-    zone          = optional(string)
-    public_ip     = optional(bool, false)
-    kind          = optional(string, "vm")
-    placement     = optional(string)
+    instance_type           = string
+    count                   = optional(number, 1)
+    disk_size_gb            = optional(number)
+    zone                    = optional(string)
+    public_ip               = optional(bool, false)
+    kind                    = optional(string, "vm")
+    placement               = optional(string)
+    market                  = optional(string)
+    capacity_reservation_id = optional(string)
   }))
   default     = {}
   description = "Worker pools without GPUs, keyed by pool name. Same fields and provider limits as gpu_pools."

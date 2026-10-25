@@ -63,13 +63,15 @@ variable "jumphost_instance_type" {
 
 variable "gpu_pools" {
   type = map(object({
-    instance_type = string
-    count         = optional(number, 1)
-    disk_size_gb  = optional(number)
-    zone          = optional(string)
-    public_ip     = optional(bool, false)
-    kind          = optional(string, "vm")
-    placement     = optional(string)
+    instance_type           = string
+    count                   = optional(number, 1)
+    disk_size_gb            = optional(number)
+    zone                    = optional(string)
+    public_ip               = optional(bool, false)
+    kind                    = optional(string, "vm")
+    placement               = optional(string)
+    market                  = optional(string)
+    capacity_reservation_id = optional(string)
   }))
   default     = {}
   description = "GPU worker pools keyed by pool name. kind = \"bare_metal\" takes a vbm-* plan; zone, disk_size_gb and placement must stay null on this provider."
@@ -77,13 +79,15 @@ variable "gpu_pools" {
 
 variable "worker_pools" {
   type = map(object({
-    instance_type = string
-    count         = optional(number, 1)
-    disk_size_gb  = optional(number)
-    zone          = optional(string)
-    public_ip     = optional(bool, false)
-    kind          = optional(string, "vm")
-    placement     = optional(string)
+    instance_type           = string
+    count                   = optional(number, 1)
+    disk_size_gb            = optional(number)
+    zone                    = optional(string)
+    public_ip               = optional(bool, false)
+    kind                    = optional(string, "vm")
+    placement               = optional(string)
+    market                  = optional(string)
+    capacity_reservation_id = optional(string)
   }))
   default     = {}
   description = "Worker pools without GPUs, keyed by pool name. Same fields and provider limits as gpu_pools."

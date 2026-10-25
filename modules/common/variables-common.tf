@@ -171,16 +171,18 @@ variable "control_plane_public_ip" {
 
 variable "gpu_pools" {
   type = map(object({
-    instance_type = string
-    count         = optional(number, 1)
-    disk_size_gb  = optional(number)
-    zone          = optional(string)
-    public_ip     = optional(bool, false)
-    kind          = optional(string, "vm")
-    placement     = optional(string)
+    instance_type           = string
+    count                   = optional(number, 1)
+    disk_size_gb            = optional(number)
+    zone                    = optional(string)
+    public_ip               = optional(bool, false)
+    kind                    = optional(string, "vm")
+    placement               = optional(string)
+    market                  = optional(string)
+    capacity_reservation_id = optional(string)
   }))
   default     = {}
-  description = "GPU worker pools keyed by pool name. instance_type is the provider's type, flavor or plan; kind is vm or bare_metal; fields a provider does not support must be null."
+  description = "GPU worker pools keyed by pool name. instance_type is the provider's type, flavor or plan; kind is vm or bare_metal; market (spot or capacity-block) and capacity_reservation_id select the purchase option; fields a provider does not support must be null."
 
   validation {
     condition     = alltrue([for k in keys(var.gpu_pools) : can(regex("^[a-z0-9]([a-z0-9-]{0,14}[a-z0-9])?$", k))])
@@ -213,6 +215,21 @@ variable "gpu_pools" {
   }
 
   validation {
+    condition     = alltrue([for k, p in var.gpu_pools : p.market == null || contains(["spot", "capacity-block"], coalesce(p.market, "-"))])
+    error_message = "Every gpu_pools market must be null (on-demand), \"spot\" or \"capacity-block\"."
+  }
+
+  validation {
+    condition     = alltrue([for k, p in var.gpu_pools : (p.market == "capacity-block") == (p.capacity_reservation_id != null) || (p.market == null && p.capacity_reservation_id != null)])
+    error_message = "gpu_pools: market \"capacity-block\" needs capacity_reservation_id, and \"spot\" cannot use one (an On-Demand Capacity Reservation goes with market = null)."
+  }
+
+  validation {
+    condition     = alltrue([for k, p in var.gpu_pools : p.capacity_reservation_id == null || can(regex("^cr-[0-9a-f]{17}$", coalesce(p.capacity_reservation_id, "-")))])
+    error_message = "gpu_pools: capacity_reservation_id must be a reservation ID like cr-0123456789abcdef0."
+  }
+
+  validation {
     condition     = alltrue([for k, p in var.gpu_pools : p.zone == null || length(var.zones) == 0 || contains(var.zones, coalesce(p.zone, "-"))])
     error_message = "Every gpu_pools zone must be one of var.zones."
   }
@@ -225,13 +242,15 @@ variable "gpu_pools" {
 
 variable "worker_pools" {
   type = map(object({
-    instance_type = string
-    count         = optional(number, 1)
-    disk_size_gb  = optional(number)
-    zone          = optional(string)
-    public_ip     = optional(bool, false)
-    kind          = optional(string, "vm")
-    placement     = optional(string)
+    instance_type           = string
+    count                   = optional(number, 1)
+    disk_size_gb            = optional(number)
+    zone                    = optional(string)
+    public_ip               = optional(bool, false)
+    kind                    = optional(string, "vm")
+    placement               = optional(string)
+    market                  = optional(string)
+    capacity_reservation_id = optional(string)
   }))
   default     = {}
   description = "Worker pools without GPUs keyed by pool name, with the same fields as gpu_pools. Hostnames are <cluster_name>-<pool>-NN, so keys must not collide with gpu_pools keys."
@@ -264,6 +283,21 @@ variable "worker_pools" {
   validation {
     condition     = alltrue([for k, p in var.worker_pools : contains(["vm", "bare_metal"], p.kind)])
     error_message = "Every worker_pools kind must be \"vm\" or \"bare_metal\"."
+  }
+
+  validation {
+    condition     = alltrue([for k, p in var.worker_pools : p.market == null || contains(["spot", "capacity-block"], coalesce(p.market, "-"))])
+    error_message = "Every worker_pools market must be null (on-demand), \"spot\" or \"capacity-block\"."
+  }
+
+  validation {
+    condition     = alltrue([for k, p in var.worker_pools : (p.market == "capacity-block") == (p.capacity_reservation_id != null) || (p.market == null && p.capacity_reservation_id != null)])
+    error_message = "worker_pools: market \"capacity-block\" needs capacity_reservation_id, and \"spot\" cannot use one (an On-Demand Capacity Reservation goes with market = null)."
+  }
+
+  validation {
+    condition     = alltrue([for k, p in var.worker_pools : p.capacity_reservation_id == null || can(regex("^cr-[0-9a-f]{17}$", coalesce(p.capacity_reservation_id, "-")))])
+    error_message = "worker_pools: capacity_reservation_id must be a reservation ID like cr-0123456789abcdef0."
   }
 
   validation {

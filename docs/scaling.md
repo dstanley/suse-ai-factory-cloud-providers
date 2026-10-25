@@ -29,7 +29,8 @@ Set `control_plane_count` to the next odd number (1 → 3 → 5) and re-run
 ## Worker and GPU pools
 
 `worker_pools` and `gpu_pools` share one schema (`instance_type`, `count`,
-`disk_size_gb`, `zone`, `public_ip`, `kind`, `placement`; which fields apply is
+`disk_size_gb`, `zone`, `public_ip`, `kind`, `placement`, `market`,
+`capacity_reservation_id`; which fields apply is
 provider-specific, see `docs/providers/<provider>.md`). Keys are pool names and
 must differ between the two maps, because both become hostnames.
 

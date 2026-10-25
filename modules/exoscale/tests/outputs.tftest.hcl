@@ -345,3 +345,13 @@ run "rancher_hostname_default_sslip" {
     error_message = "Without ingress_domain the Rancher hostname must keep the sslip.io default."
   }
 }
+
+run "pool_market_unsupported" {
+  command = plan
+
+  variables {
+    gpu_pools = { gpu = { instance_type = "gpu3.small", count = 1, public_ip = true, market = "spot" } }
+  }
+
+  expect_failures = [exoscale_private_network.this]
+}

@@ -21,6 +21,33 @@ resource "aws_instance" "agent" {
 
   user_data = module.elemental_config.node_runtime_ignition[each.key]
 
+  # Spot (one-time, terminated on interruption; the next apply replaces it) or a
+  # Capacity Block for ML. A reservation is targeted by ID: a Capacity Block, or an
+  # On-Demand Capacity Reservation with market = null.
+  dynamic "instance_market_options" {
+    for_each = each.value.market == null ? [] : [each.value.market]
+    content {
+      market_type = instance_market_options.value
+
+      dynamic "spot_options" {
+        for_each = instance_market_options.value == "spot" ? [1] : []
+        content {
+          spot_instance_type             = "one-time"
+          instance_interruption_behavior = "terminate"
+        }
+      }
+    }
+  }
+
+  dynamic "capacity_reservation_specification" {
+    for_each = each.value.reservation == null ? [] : [each.value.reservation]
+    content {
+      capacity_reservation_target {
+        capacity_reservation_id = capacity_reservation_specification.value
+      }
+    }
+  }
+
   # Ignition runs on first boot only: a changed user_data (e.g. suse_storage_nodes)
   # reaches new nodes only. A new image still replaces the node.
   lifecycle {

@@ -74,27 +74,31 @@ variable "control_plane_disk_size_gb" {
 
 variable "gpu_pools" {
   type = map(object({
-    instance_type = string
-    count         = optional(number, 1)
-    disk_size_gb  = optional(number)
-    zone          = optional(string)
-    public_ip     = optional(bool, false)
-    kind          = optional(string, "vm")
-    placement     = optional(string)
+    instance_type           = string
+    count                   = optional(number, 1)
+    disk_size_gb            = optional(number)
+    zone                    = optional(string)
+    public_ip               = optional(bool, false)
+    kind                    = optional(string, "vm")
+    placement               = optional(string)
+    market                  = optional(string)
+    capacity_reservation_id = optional(string)
   }))
   default     = {}
-  description = "GPU worker pools keyed by pool name. On aws only instance_type, count, disk_size_gb and zone are supported."
+  description = "GPU worker pools keyed by pool name. On aws only instance_type, count, disk_size_gb, zone, market and capacity_reservation_id are supported."
 }
 
 variable "worker_pools" {
   type = map(object({
-    instance_type = string
-    count         = optional(number, 1)
-    disk_size_gb  = optional(number)
-    zone          = optional(string)
-    public_ip     = optional(bool, false)
-    kind          = optional(string, "vm")
-    placement     = optional(string)
+    instance_type           = string
+    count                   = optional(number, 1)
+    disk_size_gb            = optional(number)
+    zone                    = optional(string)
+    public_ip               = optional(bool, false)
+    kind                    = optional(string, "vm")
+    placement               = optional(string)
+    market                  = optional(string)
+    capacity_reservation_id = optional(string)
   }))
   default     = {}
   description = "Worker pools without GPUs, keyed by pool name. Same fields and provider limits as gpu_pools."

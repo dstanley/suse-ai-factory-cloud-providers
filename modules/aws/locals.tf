@@ -86,6 +86,8 @@ locals {
       init          = i == 0 # cp-01 initializes the cluster; the rest join it.
       az_index      = i % local.az_count
       disk_size_gb  = local.control_plane_disk_size_gb
+      market        = null
+      reservation   = null
     }
   ]
 
@@ -102,6 +104,8 @@ locals {
         init          = false
         az_index      = max(try(index(local.zones, local.agent_pools[pool].zone), -1), 0)
         disk_size_gb  = local.agent_pools[pool].disk_size_gb
+        market        = local.agent_pools[pool].market
+        reservation   = local.agent_pools[pool].capacity_reservation_id
       }
     ]
   ])

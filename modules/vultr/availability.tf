@@ -4,7 +4,7 @@
 
 locals {
   agent_pool_unsupported = sort([
-    for k, p in local.agent_pools : k if p.zone != null || p.disk_size_gb != null || p.placement != null
+    for k, p in local.agent_pools : k if p.zone != null || p.disk_size_gb != null || p.placement != null || p.market != null || p.capacity_reservation_id != null
   ])
 
   agent_pool_bad_kind = sort([

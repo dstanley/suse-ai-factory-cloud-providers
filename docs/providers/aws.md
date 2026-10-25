@@ -301,6 +301,25 @@ Marketplace listing. Behaviour:
   Capacity Reservation (billed while unused, ends after `--hours`, default 2).
   Set the pool `instance_type` and `zone` it prints, re-apply, then cancel the
   reservation; the instance keeps running.
+- Pools choose how instances are bought with `market` and
+  `capacity_reservation_id` (worker and GPU pools; control planes stay
+  on-demand):
+  - `market = "spot"`: one-time Spot request, terminated on interruption. The
+    next apply launches a replacement with the same hostname: run
+    `kubectl delete node <name>` first, or RKE2 can reject the join because the
+    node password no longer matches. The GPU vCPU quota for Spot is separate
+    ("All P Spot Instance Requests", "All G and VT Spot Instance Requests").
+  - `market = "capacity-block"` with `capacity_reservation_id`: launches into a
+    purchased Capacity Block for ML. The block is bought outside Terraform
+    (`aws ec2 purchase-capacity-block`), bills its whole duration up front, and
+    the pool's `zone` and `instance_type` must match it (a mismatch fails at
+    apply, not plan: Terraform cannot read the reservation). EC2 terminates
+    instances still running shortly before the block ends; remove the pool,
+    or move it to another market, before the next apply, which would
+    otherwise try to relaunch into the expired block and fail.
+  - `capacity_reservation_id` alone (`market` null): launches into an
+    On-Demand Capacity Reservation, such as one from `check-and-reserve.sh`.
+  - `tools/cost` prices every pool at the On-Demand rate.
   Node instances use the `aws.nodes` provider with `max_retries = 3`, so the
   apply fails within minutes instead of retrying (see
   [workarounds.md](../workarounds.md)).

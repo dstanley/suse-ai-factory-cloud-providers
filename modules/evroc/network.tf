@@ -23,6 +23,11 @@ resource "evroc_vpc" "this" {
     }
 
     precondition {
+      condition     = alltrue([for k, p in merge(var.worker_pools, var.gpu_pools) : p.market == null && p.capacity_reservation_id == null])
+      error_message = "worker_pools and gpu_pools market and capacity_reservation_id are not supported and must be null."
+    }
+
+    precondition {
       condition     = var.image_id == null
       error_message = "image_id is not supported: evroc snapshots are zonal. Set image_ids, a map of zone to snapshot."
     }

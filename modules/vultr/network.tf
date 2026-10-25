@@ -30,7 +30,7 @@ resource "vultr_vpc" "this" {
 
     precondition {
       condition     = length(local.agent_pool_unsupported) == 0
-      error_message = "gpu_pools or worker_pools entries ${join(", ", local.agent_pool_unsupported)} set a field this provider does not support: zone, disk_size_gb and placement must be null."
+      error_message = "gpu_pools or worker_pools entries ${join(", ", local.agent_pool_unsupported)} set a field this provider does not support: zone, disk_size_gb, placement, market and capacity_reservation_id must be null."
     }
 
     precondition {

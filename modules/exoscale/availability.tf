@@ -5,7 +5,7 @@
 
 locals {
   agent_pool_unsupported = sort([
-    for k, p in local.agent_pools : k if p.zone != null || p.placement != null || p.kind != "vm"
+    for k, p in local.agent_pools : k if p.zone != null || p.placement != null || p.kind != "vm" || p.market != null || p.capacity_reservation_id != null
   ])
 
   # Every node has a public IPv4 (ADR 008): pools must say so explicitly.

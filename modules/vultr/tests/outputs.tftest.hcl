@@ -585,3 +585,13 @@ run "explicit_rancher_hostname_beats_ingress_domain" {
     error_message = "An explicit rancher_hostname must win over ingress_domain."
   }
 }
+
+run "pool_market_unsupported" {
+  command = plan
+
+  variables {
+    worker_pools = { wrk = { instance_type = "vc2-6c-16gb", count = 1, market = "spot" } }
+  }
+
+  expect_failures = [vultr_vpc.this]
+}

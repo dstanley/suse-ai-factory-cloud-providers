@@ -385,3 +385,13 @@ run "worker_flavor_null_gpu_quantity_accepted" {
     }
   }
 }
+
+run "pool_market_unsupported" {
+  command = plan
+
+  variables {
+    worker_pools = { general = { instance_type = "c1a.m", count = 1, market = "spot" } }
+  }
+
+  expect_failures = [evroc_vpc.this]
+}
